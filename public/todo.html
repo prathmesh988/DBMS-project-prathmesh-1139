@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Todo List</title>
+    <link rel="stylesheet" href="todo.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Welcome, <span id="username-display">User</span></h1>
+            <p>Here are your tasks for today</p>
+        </header>
+
+        <div class="input-group">
+            <input type="text" id="todo-input" placeholder="What needs to be done?" autofocus>
+            <button id="add-btn">Add Task</button>
+        </div>
+
+        <ul id="todo-list">
+            <!-- Todos will be added here dynamically -->
+        </ul>
+        
+        <div class="logout-section">
+             <a href="/login" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <script src="todo.js"></script>
+</body>
+</html>

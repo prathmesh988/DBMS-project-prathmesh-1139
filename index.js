@@ -9,6 +9,7 @@ app.use(express.static('public'));
 
 // Middleware to parse URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Parse JSON bodies for API requests
 
 // Create MySQL connection (initially without database to create it if needed)
 const db = mysql.createConnection({
@@ -47,6 +48,20 @@ db.connect((err) => {
             db.query(createTableQuery, (err) => {
                 if (err) throw err;
                 console.log('Table "users" checked/created');
+
+                // Create todos table
+                const createTodosTableQuery = `
+                    CREATE TABLE IF NOT EXISTS todos (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(255) NOT NULL,
+                        task VARCHAR(255) NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                `;
+                db.query(createTodosTableQuery, (err) => {
+                    if (err) throw err;
+                    console.log('Table "todos" checked/created');
+                });
             });
         });
     });
@@ -74,7 +89,8 @@ app.post('/login', (req, res) => {
         console.log('DB Results:', results); // Debug log
 
         if (results.length > 0) {
-            res.send('<h1>Login Successful!</h1><p>Welcome, ' + results[0].username + '</p>');
+            // Redirect to todo page with username
+            res.redirect(`/todo.html?username=${encodeURIComponent(results[0].username)}`);
         } else {
             res.send('<h1>Login Failed</h1><p>Invalid email or password. <a href="/login">Try again</a></p>');
         }
@@ -94,6 +110,45 @@ app.post('/register', (req, res) => {
             return;
         }
         res.send('<h1>Registration Successful!</h1><p>Please <a href="/login">Login</a></p>');
+    });
+});
+
+
+// API Routes for Todos
+app.get('/api/todos', (req, res) => {
+    const { username } = req.query;
+    if (!username) return res.status(400).json({ error: 'Username required' });
+
+    db.query('SELECT * FROM todos WHERE username = ? ORDER BY created_at DESC', [username], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.json(results);
+    });
+});
+
+app.post('/api/todos', (req, res) => {
+    const { username, task } = req.body;
+    if (!username || !task) return res.status(400).json({ error: 'Missing fields' });
+
+    db.query('INSERT INTO todos (username, task) VALUES (?, ?)', [username, task], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.json({ id: result.insertId, username, task });
+    });
+});
+
+app.delete('/api/todos/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('DELETE FROM todos WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.sendStatus(200);
     });
 });
 
