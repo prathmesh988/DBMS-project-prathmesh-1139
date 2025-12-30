@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (username) {
         usernameDisplay.textContent = username;
+        localStorage.setItem('username', username);
     } else {
         // Redirect to login if no username is present
         window.location.href = '/login';
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchTodos() {
         if (!username) return;
-        
+
         fetch(`/api/todos?username=${encodeURIComponent(username)}`)
             .then(res => res.json())
             .then(todos => {
@@ -44,36 +45,58 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             body: JSON.stringify({ username, task })
         })
-        .then(res => res.json())
-        .then(newTodo => {
-            renderTodo(newTodo);
-            todoInput.value = '';
-        })
-        .catch(err => console.error('Error adding todo:', err));
+            .then(res => res.json())
+            .then(newTodo => {
+                renderTodo(newTodo);
+                todoInput.value = '';
+            })
+            .catch(err => console.error('Error adding todo:', err));
     }
 
     function renderTodo(todo) {
         const li = document.createElement('li');
         li.innerHTML = `
             <span>${escapeHtml(todo.task)}</span>
-            <button class="delete-btn" onclick="deleteTodo(${todo.id}, this)">&times;</button>
+            <div class="actions">
+                <button class="edit-btn" onclick="editTodo(${todo.id}, '${escapeHtml(todo.task)}')">Edit</button>
+                <button class="delete-btn" onclick="deleteTodo(${todo.id}, this)">&times;</button>
+            </div>
         `;
         todoList.appendChild(li);
     }
 
     // Expose delete function to global scope due to inline onclick
-    window.deleteTodo = function(id, btnElement) {
+    window.deleteTodo = function (id, btnElement) {
         fetch(`/api/todos/${id}`, {
             method: 'DELETE'
         })
-        .then(res => {
-            if (res.ok) {
-                const li = btnElement.parentElement;
-                li.style.opacity = '0';
-                setTimeout(() => li.remove(), 300);
-            }
-        })
-        .catch(err => console.error('Error deleting todo:', err));
+            .then(res => {
+                if (res.ok) {
+                    const li = btnElement.parentElement;
+                    li.style.opacity = '0';
+                    setTimeout(() => li.remove(), 300);
+                }
+            })
+            .catch(err => console.error('Error deleting todo:', err));
+    };
+
+    window.editTodo = function (id, currentTask) {
+        const newTask = prompt('Edit your task:', currentTask);
+        if (newTask !== null && newTask.trim() !== '') {
+            fetch(`/api/todos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ task: newTask.trim() })
+            })
+                .then(res => {
+                    if (res.ok) {
+                        fetchTodos(); // Reload list to show updated task
+                    }
+                })
+                .catch(err => console.error('Error updating todo:', err));
+        }
     };
 
     function escapeHtml(text) {

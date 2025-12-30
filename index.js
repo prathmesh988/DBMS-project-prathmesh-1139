@@ -141,6 +141,20 @@ app.post('/api/todos', (req, res) => {
     });
 });
 
+app.put('/api/todos/:id', (req, res) => {
+    const { id } = req.params;
+    const { task } = req.body;
+    if (!task) return res.status(400).json({ error: 'Task content required' });
+
+    db.query('UPDATE todos SET task = ? WHERE id = ?', [task, id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.json({ id, task });
+    });
+});
+
 app.delete('/api/todos/:id', (req, res) => {
     const { id } = req.params;
     db.query('DELETE FROM todos WHERE id = ?', [id], (err, result) => {

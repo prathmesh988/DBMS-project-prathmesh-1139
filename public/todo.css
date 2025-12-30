@@ -7,6 +7,26 @@
     --success-color: #00b894;
 }
 
+
+/* Action buttons container */
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.edit-btn {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.edit-btn:hover {
+    text-decoration: underline;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-color);
@@ -22,7 +42,7 @@ body {
     background: white;
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
     transition: transform 0.2s;
@@ -129,6 +149,13 @@ li span {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
